@@ -157,6 +157,10 @@ $ claude
 - **조직 전체 적용**: 조직의 `.github` 저장소에 `ISSUE_TEMPLATE/`을 넣으면 모든 repo에 이슈 폼이 상속됨 (슬래시 커맨드는 repo별 `.claude/commands/` 또는 개인 `~/.claude/commands/`에 설치)
 - **Claude Code 외 도구**: 커맨드 파일은 평문 마크다운 지시문이므로 Cursor rules, Copilot instructions 등에도 내용을 이식 가능
 
+## 선택 통합 (Optional Integrations)
+
+- **[Langfuse](./integrations/langfuse/README.md)** — `/spec`·`/implement-issue`·`/review-pr` 실행을 이름 있는 trace로 기록. 기본 설치에는 포함되지 않으며, 켜면 커맨드 인자가 제3자 SaaS로 전송되니 설치 전 README의 경고를 꼭 읽으세요.
+
 ## 요구 사항
 
 - [Claude Code](https://claude.com/claude-code) — 슬래시 커맨드 실행
