@@ -3,7 +3,7 @@
 AI 위임 개발 워크플로우 — **상위 모델이 설계하고, 실행 모델이 구현하는** 팀을 위한 템플릿 + Claude Code 슬래시 커맨드 세트.
 
 ```
-/design-to-issues "기능 설명"  (Opus)        /implement-issue 12  (Sonnet)
+/spec "기능 설명"  (Opus)                    /implement-issue 12  (Sonnet)
         │                                          │
   ① 코드 읽고 검증                            ④ 이슈 계약대로 구현
   ② 설계문서 작성                             ⑤ 검증 명령어 자가 실행
@@ -13,7 +13,7 @@ AI 위임 개발 워크플로우 — **상위 모델이 설계하고, 실행 모
                      ⑦ 설계문서 대비 PR 판정
 ```
 
-각 커맨드 frontmatter에 `model:`이 박혀 있어 **`/model`을 직접 안 쳐도 그 커맨드를 부르는 순간 자동으로 해당 모델로 전환**되고, 다음 프롬프트부터 세션은 원래 모델로 돌아갑니다. 세 커맨드 모두 `disable-model-invocation: true`라 Claude가 알아서 트리거하지 않고, 사람이 직접 `/design-to-issues`·`/implement-issue`·`/review-pr`을 쳤을 때만 실행됩니다.
+각 커맨드 frontmatter에 `model:`이 박혀 있어 **`/model`을 직접 안 쳐도 그 커맨드를 부르는 순간 자동으로 해당 모델로 전환**되고, 다음 프롬프트부터 세션은 원래 모델로 돌아갑니다. 세 커맨드 모두 `disable-model-invocation: true`라 Claude가 알아서 트리거하지 않고, 사람이 직접 `/spec`·`/implement-issue`·`/review-pr`을 쳤을 때만 실행됩니다.
 
 ---
 
@@ -29,7 +29,7 @@ AI 위임 개발 워크플로우 — **상위 모델이 설계하고, 실행 모
 | `design-doc-template.md` | 설계문서의 구조 강제 | 상상 설계, 근거 없는 앵커 |
 | **`.claude/commands/*.md` (슬래시 커맨드)** | **Claude Code가 이 양식대로 일하게 만드는 실행 장치** | 매번 손으로 길게 지시해야 함 |
 
-즉 **Claude Code에게 지시하는 과정은 슬래시 커맨드가 담당**합니다. `/design-to-issues`를 치면 Claude가 코드를 읽고 → 설계문서를 쓰고 → 이 저장소의 이슈 양식 그대로 `gh issue create`로 등록합니다. 사람이 이슈 폼을 채울 일은 거의 없어지고, 폼은 사람이 수동으로 만들 때의 안전망 역할입니다.
+즉 **Claude Code에게 지시하는 과정은 슬래시 커맨드가 담당**합니다. `/spec`을 치면 Claude가 코드를 읽고 → 설계문서를 쓰고 → 이 저장소의 이슈 양식 그대로 `gh issue create`로 등록합니다. 사람이 이슈 폼을 채울 일은 거의 없어지고, 폼은 사람이 수동으로 만들 때의 안전망 역할입니다.
 
 ### Q. 어떤 모델로 요청해야 하나요?
 
@@ -37,7 +37,7 @@ AI 위임 개발 워크플로우 — **상위 모델이 설계하고, 실행 모
 
 | 단계 | 커맨드 | 고정 모델 | 이유 |
 |---|---|---|---|
-| 설계 + 이슈 등록 | `/design-to-issues` | **Opus** | 코드 전체 맥락 파악, 분해 판단, 엣지 케이스 도출이 품질을 좌우 |
+| 설계 + 이슈 등록 | `/spec` | **Opus** | 코드 전체 맥락 파악, 분해 판단, 엣지 케이스 도출이 품질을 좌우 |
 | 구현 | `/implement-issue N` | **Sonnet** | 계약이 명확하면 실행은 빠르고 저렴한 모델로 충분 |
 | PR 리뷰 | `/review-pr <PR번호> [이슈번호]` | **Opus** | 설계 의도 대비 검증은 다시 상위 모델 |
 
@@ -67,7 +67,7 @@ issue-template/
 │       └── ai-task.yml                 # GitHub 이슈 폼 (웹에서 수동 등록용 안전망)
 └── claude/
     └── commands/
-        ├── design-to-issues.md         # [설계, model: opus] 요구사항 → 설계문서 → 이슈 등록
+        ├── spec.md                     # [설계, model: opus] 요구사항 → 설계문서 → 이슈 등록
         ├── implement-issue.md          # [구현, model: sonnet] 이슈 번호 → 구현 → 검증 → PR
         └── review-pr.md                # [리뷰, model: opus] PR → 설계문서·이슈 계약 대비 판정
 ```
@@ -80,7 +80,7 @@ REPO_RAW=https://raw.githubusercontent.com/nlook-service/issue-template/main
 mkdir -p .github/ISSUE_TEMPLATE docs/design .claude/commands
 curl -fsSL $REPO_RAW/github/ISSUE_TEMPLATE/ai-task.yml       -o .github/ISSUE_TEMPLATE/ai-task.yml
 curl -fsSL $REPO_RAW/design-doc-template.md                  -o docs/design/TEMPLATE.md
-curl -fsSL $REPO_RAW/claude/commands/design-to-issues.md     -o .claude/commands/design-to-issues.md
+curl -fsSL $REPO_RAW/claude/commands/spec.md                 -o .claude/commands/spec.md
 curl -fsSL $REPO_RAW/claude/commands/implement-issue.md      -o .claude/commands/implement-issue.md
 curl -fsSL $REPO_RAW/claude/commands/review-pr.md            -o .claude/commands/review-pr.md
 
@@ -89,17 +89,17 @@ git add .github docs .claude && git commit -m "chore: AI 위임 워크플로우 
 
 설치 후:
 - GitHub **New Issue** 화면에 "AI 구현 작업" 폼이 나타남
-- Claude Code에서 `/design-to-issues`, `/implement-issue`, `/review-pr` 커맨드 사용 가능 (`gh` CLI 로그인 필요: `gh auth login`) — 모델은 각 커맨드가 자동 전환하므로 `/model`을 직접 칠 필요 없음
+- Claude Code에서 `/spec`, `/implement-issue`, `/review-pr` 커맨드 사용 가능 (`gh` CLI 로그인 필요: `gh auth login`) — 모델은 각 커맨드가 자동 전환하므로 `/model`을 직접 칠 필요 없음
 
 ---
 
 ## 전체 과정 (실제 지시 예시)
 
-### ① 설계 — `/design-to-issues` (자동으로 Opus)
+### ① 설계 — `/spec` (자동으로 Opus)
 
 ```
 $ claude
-> /design-to-issues 토큰 만료 시 재로그인 없이 세션을 이어가는 refresh 토큰 갱신 기능
+> /spec 토큰 만료 시 재로그인 없이 세션을 이어가는 refresh 토큰 갱신 기능
 ```
 
 Claude가 자동으로:
@@ -153,7 +153,7 @@ $ claude
 ## 커스터마이징
 
 - **라벨·제목 접두어**: `ai-task.yml` 상단과 커맨드 파일의 `gh issue create` 라인에서 팀 컨벤션에 맞게 수정
-- **이슈 크기 기준**: `design-to-issues.md`의 "파일 5개, 300라인 diff" 기준을 팀에 맞게 조정
+- **이슈 크기 기준**: `spec.md`의 "파일 5개, 300라인 diff" 기준을 팀에 맞게 조정
 - **조직 전체 적용**: 조직의 `.github` 저장소에 `ISSUE_TEMPLATE/`을 넣으면 모든 repo에 이슈 폼이 상속됨 (슬래시 커맨드는 repo별 `.claude/commands/` 또는 개인 `~/.claude/commands/`에 설치)
 - **Claude Code 외 도구**: 커맨드 파일은 평문 마크다운 지시문이므로 Cursor rules, Copilot instructions 등에도 내용을 이식 가능
 
