@@ -3,17 +3,17 @@
 AI 위임 개발 워크플로우 — **상위 모델이 설계하고, 실행 모델이 구현하는** 팀을 위한 템플릿 + Claude Code 슬래시 커맨드 세트.
 
 ```
-[설계 세션: Opus/Fable]                      [구현 세션: Sonnet]
-        │                                          │
-/design-to-issues "기능 설명"                /implement-issue 12
+/design-to-issues "기능 설명"  (Opus)        /implement-issue 12  (Sonnet)
         │                                          │
   ① 코드 읽고 검증                            ④ 이슈 계약대로 구현
   ② 설계문서 작성                             ⑤ 검증 명령어 자가 실행
   ③ 이슈 자동 등록 ──── GitHub Issues ─────▶  ⑥ PR 생성
         │                                          │
-        └───────── ⑦ 설계문서 대비 PR 리뷰 ◀───────┘
-                     [리뷰 세션: Opus/Fable]
+        └───── /review-pr 15 12  (Opus) ◀──────────┘
+                     ⑦ 설계문서 대비 PR 판정
 ```
+
+각 커맨드 frontmatter에 `model:`이 박혀 있어 **`/model`을 직접 안 쳐도 그 커맨드를 부르는 순간 자동으로 해당 모델로 전환**되고, 다음 프롬프트부터 세션은 원래 모델로 돌아갑니다. 세 커맨드 모두 `disable-model-invocation: true`라 Claude가 알아서 트리거하지 않고, 사람이 직접 `/design-to-issues`·`/implement-issue`·`/review-pr`을 쳤을 때만 실행됩니다.
 
 ---
 
@@ -33,15 +33,17 @@ AI 위임 개발 워크플로우 — **상위 모델이 설계하고, 실행 모
 
 ### Q. 어떤 모델로 요청해야 하나요?
 
-Claude Code에서 `/model`로 세션 모델을 전환합니다. 단계별 권장:
+**신경 쓸 필요 없습니다 — 커맨드마다 모델이 고정돼 있어 자동 전환됩니다.**
 
-| 단계 | 커맨드 | 권장 모델 | 이유 |
+| 단계 | 커맨드 | 고정 모델 | 이유 |
 |---|---|---|---|
-| 설계 + 이슈 등록 | `/design-to-issues` | **Opus** (또는 사용 가능한 최상위 모델) | 코드 전체 맥락 파악, 분해 판단, 엣지 케이스 도출이 품질을 좌우 |
+| 설계 + 이슈 등록 | `/design-to-issues` | **Opus** | 코드 전체 맥락 파악, 분해 판단, 엣지 케이스 도출이 품질을 좌우 |
 | 구현 | `/implement-issue N` | **Sonnet** | 계약이 명확하면 실행은 빠르고 저렴한 모델로 충분 |
-| PR 리뷰 | 아래 리뷰 프롬프트 | **Opus** | 설계 의도 대비 검증은 다시 상위 모델 |
+| PR 리뷰 | `/review-pr <PR번호> [이슈번호]` | **Opus** | 설계 의도 대비 검증은 다시 상위 모델 |
 
 > 핵심 원리: **비싼 모델의 산출물(설계·계약)이 좋을수록 싼 모델의 실행 품질이 올라간다.** 설계에서 아끼고 구현에서 비싼 모델을 쓰는 것이 가장 비효율적인 조합입니다.
+
+각 `.md` 커맨드 파일 frontmatter의 `model:` 값만 바꾸면 고정 모델을 교체할 수 있습니다(예: Opus 대신 조직에서 쓸 수 있는 다른 최상위 모델). 값이 조직의 `availableModels` 허용 목록에 없으면 조용히 무시되고 세션의 현재 모델이 유지됩니다 — 즉 실패해도 에러 없이 그냥 전환이 안 될 뿐입니다.
 
 ### Q. 그래서 뭐가 달라지나요? (Before / After)
 
@@ -65,8 +67,9 @@ issue-template/
 │       └── ai-task.yml                 # GitHub 이슈 폼 (웹에서 수동 등록용 안전망)
 └── claude/
     └── commands/
-        ├── design-to-issues.md         # [설계 세션] 요구사항 → 설계문서 → 이슈 등록
-        └── implement-issue.md          # [구현 세션] 이슈 번호 → 구현 → 검증 → PR
+        ├── design-to-issues.md         # [설계, model: opus] 요구사항 → 설계문서 → 이슈 등록
+        ├── implement-issue.md          # [구현, model: sonnet] 이슈 번호 → 구현 → 검증 → PR
+        └── review-pr.md                # [리뷰, model: opus] PR → 설계문서·이슈 계약 대비 판정
 ```
 
 ## 설치 (대상 저장소 루트에서)
@@ -79,23 +82,23 @@ curl -fsSL $REPO_RAW/github/ISSUE_TEMPLATE/ai-task.yml       -o .github/ISSUE_TE
 curl -fsSL $REPO_RAW/design-doc-template.md                  -o docs/design/TEMPLATE.md
 curl -fsSL $REPO_RAW/claude/commands/design-to-issues.md     -o .claude/commands/design-to-issues.md
 curl -fsSL $REPO_RAW/claude/commands/implement-issue.md      -o .claude/commands/implement-issue.md
+curl -fsSL $REPO_RAW/claude/commands/review-pr.md            -o .claude/commands/review-pr.md
 
 git add .github docs .claude && git commit -m "chore: AI 위임 워크플로우 템플릿 설치"
 ```
 
 설치 후:
 - GitHub **New Issue** 화면에 "AI 구현 작업" 폼이 나타남
-- Claude Code에서 `/design-to-issues`, `/implement-issue` 커맨드 사용 가능 (`gh` CLI 로그인 필요: `gh auth login`)
+- Claude Code에서 `/design-to-issues`, `/implement-issue`, `/review-pr` 커맨드 사용 가능 (`gh` CLI 로그인 필요: `gh auth login`) — 모델은 각 커맨드가 자동 전환하므로 `/model`을 직접 칠 필요 없음
 
 ---
 
 ## 전체 과정 (실제 지시 예시)
 
-### ① 설계 세션 — Opus로
+### ① 설계 — `/design-to-issues` (자동으로 Opus)
 
 ```
 $ claude
-> /model opus
 > /design-to-issues 토큰 만료 시 재로그인 없이 세션을 이어가는 refresh 토큰 갱신 기능
 ```
 
@@ -106,11 +109,10 @@ Claude가 자동으로:
 4. 승인하면 `gh issue create`로 이슈 등록 (이 저장소의 이슈 본문 양식 그대로)
 5. 등록된 이슈 번호 표 + 구현 세션에 전달할 지시문 출력
 
-### ② 구현 세션 — Sonnet으로 (이슈당 새 세션)
+### ② 구현 — `/implement-issue` (자동으로 Sonnet, 이슈당 새 세션)
 
 ```
 $ claude
-> /model sonnet
 > /implement-issue 12
 ```
 
@@ -125,16 +127,14 @@ Claude가 자동으로:
 > 💡 이슈가 3개면 구현 세션도 3개. 세션 하나에 이슈 하나가 품질이 가장 좋습니다.
 > 의존성 없는 이슈들은 git worktree로 병렬 진행 가능.
 
-### ③ 리뷰 세션 — 다시 Opus로
+### ③ 리뷰 — `/review-pr` (자동으로 Opus)
 
 ```
 $ claude
-> /model opus
-> PR #15를 docs/design/refresh-token.md 설계문서와 이슈 #12 계약 대비로 리뷰해줘.
-> 특히: 인터페이스 계약 준수, Non-goals 침범 여부, 완료 기준 실제 통과 여부.
+> /review-pr 15 12
 ```
 
-리뷰 통과 → 머지 → 다음 이슈. 루프가 닫힙니다.
+`design.md`·이슈 #12 계약과 PR diff를 한 줄씩 대조해 승인/반려 판정을 내립니다. 승인일 때만 머지 여부를 물어봅니다 — 반려면 무엇을 고쳐야 하는지만 보고하고 머지하지 않습니다. 리뷰 통과 → 머지 → 다음 이슈. 루프가 닫힙니다.
 
 ---
 

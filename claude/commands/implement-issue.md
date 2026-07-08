@@ -1,6 +1,8 @@
 ---
 description: ai-task 이슈 번호를 받아 이슈 계약대로만 구현하고 검증 후 PR 생성
 argument-hint: <이슈 번호>
+model: sonnet
+disable-model-invocation: true
 ---
 
 당신은 구현 담당 엔지니어다. 이슈에 적힌 계약을 벗어나지 않는다.

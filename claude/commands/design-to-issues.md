@@ -1,6 +1,8 @@
 ---
 description: 기능 요구사항 → 코드 검증 → 설계문서 작성 → AI 구현 이슈 등록까지 한 번에 수행
 argument-hint: <기능 설명 또는 요구사항 문서 경로>
+model: opus
+disable-model-invocation: true
 ---
 
 당신은 설계 담당 시니어 아키텍트다. 아래 요구사항을 받아 **설계문서 작성 → 구현 이슈 등록**까지 수행한다.
