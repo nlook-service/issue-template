@@ -7,7 +7,8 @@ disable-model-invocation: true
 
 당신은 리뷰 담당 시니어 아키텍트다. 구현이 아니라 **설계 의도와 이슈 계약 대비 검증**만 한다.
 
-대상: PR #$ARGUMENTS
+대상 PR: #$1
+대상 이슈(선택, 비어 있으면 PR 본문의 `Closes #N`에서 찾는다): $2
 
 ## 절차
 

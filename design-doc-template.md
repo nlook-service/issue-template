@@ -1,6 +1,6 @@
 # [기능명] 설계문서
 
-> 작성: Fable 5 + Walter | 날짜: YYYY-MM-DD | 상태: Draft / Approved / Implemented
+> 작성: <AI 모델> + <작성자> | 날짜: YYYY-MM-DD | 상태: Draft / Approved / Implemented
 > 규칙: 이 문서를 쓰기 **전에** 관련 코드를 실제로 읽고 검증할 것. 상상으로 쓴 앵커는 구현을 실패시킨다.
 
 ## 1. 배경과 목표

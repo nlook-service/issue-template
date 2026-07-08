@@ -84,6 +84,9 @@ curl -fsSL $REPO_RAW/claude/commands/spec.md                 -o .claude/commands
 curl -fsSL $REPO_RAW/claude/commands/implement-issue.md      -o .claude/commands/implement-issue.md
 curl -fsSL $REPO_RAW/claude/commands/review-pr.md            -o .claude/commands/review-pr.md
 
+# 이슈 라벨 생성 (gh issue create --label이 라벨 미존재 시 실패하므로 필수)
+gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
+
 git add .github docs .claude && git commit -m "chore: AI 위임 워크플로우 템플릿 설치"
 ```
 
@@ -165,3 +168,7 @@ $ claude
 
 - [Claude Code](https://claude.com/claude-code) — 슬래시 커맨드 실행
 - [gh CLI](https://cli.github.com/) — 이슈/PR 생성 (`gh auth login` 필요)
+
+## 라이선스
+
+[MIT](./LICENSE)

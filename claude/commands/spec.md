@@ -67,6 +67,7 @@ disable-model-invocation: true
 등록 명령:
 
 ```bash
+gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
 gh issue create --label ai-task --title "[Task] <제목>" --body-file <본문파일>
 ```
 
