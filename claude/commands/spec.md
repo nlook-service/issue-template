@@ -36,7 +36,37 @@ disable-model-invocation: true
 
 ## 4단계 — 이슈 등록
 
-승인받은 각 이슈를 `gh issue create`로 등록한다. 본문은 다음 구조를 그대로 따른다:
+### 4-1. 상위 추적 이슈 (이슈가 2개 이상으로 분해된 경우)
+
+기능 전체를 대표하는 상위 이슈를 **먼저** 등록한다. 하위 이슈들은 4-3에서 GitHub sub-issue로 연결되어 UI에 트리 + 진행률로 표시된다.
+
+```bash
+gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
+gh issue create --label ai-task --title "[Feature] <기능명>" --body-file <본문파일>
+```
+
+상위 이슈 본문 구조:
+
+```markdown
+## 목표
+(설계문서 1번 요약 — 한 문단)
+
+## 설계문서
+docs/design/<슬러그>.md
+
+## 구현 순서 (의존성)
+1. #N — 선행 없음, 바로 착수 가능
+2. #N — 1 머지 후
+3. #N — 1, 2 머지 후
+
+> 이 이슈는 추적용이며 직접 구현 대상이 아니다. 구현은 하위 이슈 단위로 `/implement-issue <번호>` 실행.
+```
+
+구현 순서 섹션의 `#N`은 하위 이슈 등록 후 `gh issue edit <상위번호> --body-file`로 채운다. 이슈가 1개뿐이면 상위 이슈 없이 4-2만 수행한다.
+
+### 4-2. 하위 이슈 등록
+
+승인받은 각 이슈를 **의존 순서대로** `gh issue create`로 등록한다 — 선행 이슈를 먼저 등록해 번호를 받은 뒤 후행 이슈 본문의 `선행: #번호`를 채운다. 본문은 다음 구조를 그대로 따른다:
 
 ```markdown
 ## 목표
@@ -71,11 +101,22 @@ gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업"
 gh issue create --label ai-task --title "[Task] <제목>" --body-file <본문파일>
 ```
 
-선행 이슈가 있으면 먼저 등록해 번호를 받은 뒤 후행 이슈 본문에 `#번호`를 채운다.
+### 4-3. sub-issue 연결 (상위 이슈가 있는 경우)
+
+등록한 각 하위 이슈를 상위 이슈에 연결한다. `sub_issue_id`는 이슈 **번호가 아니라 내부 id**이므로 먼저 조회한다:
+
+```bash
+CHILD_ID=$(gh api "repos/{owner}/{repo}/issues/<하위번호>" -q .id)
+gh api -X POST "repos/{owner}/{repo}/issues/<상위번호>/sub_issues" -F sub_issue_id=$CHILD_ID
+```
+
+이 호출이 실패해도(sub-issues 미지원 GHES 등) 중단하지 말고 진행한다 — 상위 이슈 본문의 구현 순서와 하위 이슈의 의존성 필드가 같은 정보를 텍스트로 담고 있다.
+
+연결이 끝나면 상위 이슈 본문의 "구현 순서" 섹션을 실제 이슈 번호로 채워 `gh issue edit`한다.
 
 ## 5단계 — 결과 보고
 
-등록된 이슈 번호·제목·의존 순서를 표로 정리하고, 구현 세션에 전달할 지시문을 출력한다:
+상위 이슈 번호(있다면)와 등록된 하위 이슈 번호·제목·의존 순서를 표로 정리하고, 구현 세션에 전달할 지시문을 출력한다:
 
 > 이슈 #N을 구현해줘. 본문의 코드 앵커 범위만 수정하고, Non-goals는 절대 건드리지 마.
 > 완료 기준의 검증 명령어를 직접 실행해 전부 통과시킨 뒤 PR을 만들어줘.
