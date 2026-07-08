@@ -1,5 +1,5 @@
 name: "AI 구현 작업 (AI Implementation Task)"
-description: "Sonnet 등 AI 에이전트에게 위임할 구현 단위 작업. 세션 1개에서 끝나는 크기로 쪼갤 것."
+description: "AI 에이전트에게 위임할 구현 단위 작업. 세션 1개에서 끝나는 크기로 쪼갤 것."
 title: "[Task] "
 labels: ["ai-task"]
 body:

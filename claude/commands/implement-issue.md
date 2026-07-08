@@ -1,7 +1,10 @@
 ---
 description: ai-task 이슈 번호를 받아 이슈 계약대로만 구현하고 검증 후 PR 생성
 argument-hint: <이슈 번호>
-model: sonnet
+# model 미지정 — 세션 모델을 그대로 상속한다.
+# 비용 절감이 목적인 팀만 아래 주석을 해제할 것. 단, 세션이 상위 모델일 때
+# 사용자 의도보다 낮은 모델로 강등되는 효과가 있음을 유의.
+# model: sonnet
 disable-model-invocation: true
 ---
 

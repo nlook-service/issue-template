@@ -18,7 +18,7 @@
 | sessionId | Claude Code 세션 ID |
 | input | 커맨드에 넘긴 인자 (요구사항 설명, 이슈 번호 등) |
 | metadata.repo | `git remote get-url origin` 기준 `owner/repo` |
-| metadata.model | 해당 커맨드의 고정 모델 (`opus`/`sonnet`) |
+| metadata.model | 해당 커맨드의 고정 모델 (`opus`, 미고정 커맨드는 `session`) |
 | metadata.issue_numbers | 인자에서 추출한 숫자들 (이슈 번호로 추정) |
 | output / metadata.duration_ms | 세션 종료(Stop 훅) 시 기록되는 소요 시간 |
 

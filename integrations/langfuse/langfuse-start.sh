@@ -17,7 +17,7 @@ CWD="$(printf '%s' "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)"
 CMD="$(printf '%s' "$PROMPT" | awk '{print $1}')"
 case "$CMD" in
   /spec) TRACE_NAME="spec"; MODEL="opus" ;;
-  /implement-issue) TRACE_NAME="implement-issue"; MODEL="sonnet" ;;
+  /implement-issue) TRACE_NAME="implement-issue"; MODEL="session" ;;
   /review-pr) TRACE_NAME="review-pr"; MODEL="opus" ;;
   *) exit 0 ;;
 esac
