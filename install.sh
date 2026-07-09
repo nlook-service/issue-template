@@ -78,6 +78,18 @@ done
 mkdir -p "$(dirname "$LOCK_FILE")"
 cp "$NEW_LOCK" "$LOCK_FILE"
 
+# 자동 업데이트 워크플로우 — 최초 1회만 설치 (이후 팀 소유, 업데이트 대상 아님).
+# GITHUB_TOKEN은 워크플로우 파일을 수정할 수 없어 CI의 자동 PR에 포함될 수 없고,
+# 파일이 이미 있으면 건드리지 않으므로 CI 안에서 이 스크립트가 돌아도 안전하다.
+# 원치 않으면 ISSUE_TEMPLATE_NO_WORKFLOW=1 로 건너뛴다.
+WF_DEST=".github/workflows/issue-template-sync.yml"
+if [ "${ISSUE_TEMPLATE_NO_WORKFLOW:-0}" != "1" ] && [ ! -f "$WF_DEST" ]; then
+  mkdir -p .github/workflows
+  curl -fsSL "$REPO_RAW/github/workflows/issue-template-sync.yml" -o "$WF_DEST"
+  echo "+ $WF_DEST (주 1회 자동 업데이트 PR — 최초 1회 설치)"
+  echo "  ⚠ 리포/조직 Settings → Actions → 'Allow GitHub Actions to create and approve pull requests' 필요"
+fi
+
 # gh CLI가 있으면 필수 라벨 생성 (gh issue create --label 이 라벨 미존재 시 실패)
 if command -v gh >/dev/null 2>&1; then
   gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true

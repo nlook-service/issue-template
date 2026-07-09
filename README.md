@@ -69,8 +69,10 @@ issue-template/
 ├── VERSION                             # 배포 버전 (배포 파일 수정 시 함께 올림)
 ├── design-doc-template.md              # 상위 설계문서 양식 (기능 1개당 1개)
 ├── github/
-│   └── ISSUE_TEMPLATE/
-│       └── ai-task.yml                 # GitHub 이슈 폼 (웹에서 수동 등록용 안전망)
+│   ├── ISSUE_TEMPLATE/
+│   │   └── ai-task.yml                 # GitHub 이슈 폼 (웹에서 수동 등록용 안전망)
+│   └── workflows/
+│       └── issue-template-sync.yml     # 주 1회 자동 업데이트 PR 워크플로우 (최초 1회만 설치)
 └── claude/
     └── commands/
         ├── spec.md                     # [설계, 상위 모델 고정] 요구사항 → 설계문서 → 이슈 등록
@@ -87,7 +89,8 @@ curl -fsSL https://raw.githubusercontent.com/nlook-service/issue-template/main/i
 ```
 
 - **처음 실행 = 설치**: 이슈 폼·설계 템플릿·슬래시 커맨드 3종을 내려받고, `ai-task` 라벨 생성(gh CLI 있을 때)까지 처리
-- **다시 실행 = 업데이트**: 이 저장소(issue-template)가 갱신된 뒤 같은 명령을 재실행하면 변경된 파일만 최신본으로 교체. 자동 푸시 업데이트는 아니므로, 템플릿 업데이트 공지가 있을 때 각 저장소에서 한 번씩 실행하면 됩니다
+- **다시 실행 = 업데이트**: 이 저장소(issue-template)가 갱신된 뒤 같은 명령을 재실행하면 변경된 파일만 최신본으로 교체
+- **주 1회 자동 업데이트 PR**: 설치 시 `issue-template-sync.yml` 워크플로우가 함께 들어가서, 이후에는 각 저장소가 매주 월요일 스스로 upstream을 확인해 **변경이 있을 때만 PR을 자동으로 엽니다** (자동 머지 아님 — 리뷰 후 머지는 사람이). 필요 설정 1회: 리포/조직 Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" 체크. 원치 않으면 `curl ... | ISSUE_TEMPLATE_NO_WORKFLOW=1 bash`로 실행 (파일만 지우면 다음 수동 실행 때 다시 설치되니 플래그를 쓰세요). 워크플로우 파일은 최초 1회만 설치되고 이후 업데이트 대상에서 제외되므로 팀에서 자유롭게 수정 가능
 - **커스터마이징 보호**: 팀에서 직접 수정한 파일은 덮어쓰지 않고 `<파일>.new`로 받아둔 뒤 경고만 출력 — 비교 후 수동 반영하세요 (설치 이력은 `.claude/issue-template.lock`에 체크섬으로 기록되어 수정 여부를 판별)
 
 실행 결과 마지막에 안내되는 대로 커밋하면 끝:
