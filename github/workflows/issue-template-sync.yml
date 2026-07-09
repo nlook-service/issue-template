@@ -18,13 +18,13 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: install.sh 실행 (설치 = 업데이트)
         run: curl -fsSL https://raw.githubusercontent.com/nlook-service/issue-template/main/install.sh | bash
 
       - name: 변경이 있으면 PR 생성
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           branch: chore/issue-template-sync
           title: "chore: issue-template 업데이트"
