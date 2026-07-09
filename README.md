@@ -65,6 +65,8 @@ AI 위임 개발 워크플로우 — **팀의 합의를 '계약'으로 명문화
 
 ```
 issue-template/
+├── install.sh                          # 설치 겸 업데이트 스크립트 (재실행 = 업데이트)
+├── VERSION                             # 배포 버전 (배포 파일 수정 시 함께 올림)
 ├── design-doc-template.md              # 상위 설계문서 양식 (기능 1개당 1개)
 ├── github/
 │   └── ISSUE_TEMPLATE/
@@ -76,22 +78,22 @@ issue-template/
         └── review-pr.md                # [리뷰, 상위 모델 고정] PR → 설계문서·이슈 계약 대비 판정
 ```
 
-## 설치 (대상 저장소 루트에서)
+## 설치 & 업데이트 (대상 저장소 루트에서)
+
+설치와 업데이트가 **같은 명령**입니다:
 
 ```bash
-REPO_RAW=https://raw.githubusercontent.com/nlook-service/issue-template/main
+curl -fsSL https://raw.githubusercontent.com/nlook-service/issue-template/main/install.sh | bash
+```
 
-mkdir -p .github/ISSUE_TEMPLATE docs/design .claude/commands
-curl -fsSL $REPO_RAW/github/ISSUE_TEMPLATE/ai-task.yml       -o .github/ISSUE_TEMPLATE/ai-task.yml
-curl -fsSL $REPO_RAW/design-doc-template.md                  -o docs/design/TEMPLATE.md
-curl -fsSL $REPO_RAW/claude/commands/spec.md                 -o .claude/commands/spec.md
-curl -fsSL $REPO_RAW/claude/commands/implement-issue.md      -o .claude/commands/implement-issue.md
-curl -fsSL $REPO_RAW/claude/commands/review-pr.md            -o .claude/commands/review-pr.md
+- **처음 실행 = 설치**: 이슈 폼·설계 템플릿·슬래시 커맨드 3종을 내려받고, `ai-task` 라벨 생성(gh CLI 있을 때)까지 처리
+- **다시 실행 = 업데이트**: 이 저장소(issue-template)가 갱신된 뒤 같은 명령을 재실행하면 변경된 파일만 최신본으로 교체. 자동 푸시 업데이트는 아니므로, 템플릿 업데이트 공지가 있을 때 각 저장소에서 한 번씩 실행하면 됩니다
+- **커스터마이징 보호**: 팀에서 직접 수정한 파일은 덮어쓰지 않고 `<파일>.new`로 받아둔 뒤 경고만 출력 — 비교 후 수동 반영하세요 (설치 이력은 `.claude/issue-template.lock`에 체크섬으로 기록되어 수정 여부를 판별)
 
-# 이슈 라벨 생성 (gh issue create --label이 라벨 미존재 시 실패하므로 필수)
-gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
+실행 결과 마지막에 안내되는 대로 커밋하면 끝:
 
-git add .github docs .claude && git commit -m "chore: AI 위임 워크플로우 템플릿 설치"
+```bash
+git add .github docs .claude && git commit -m "chore: issue-template vX.Y.Z"
 ```
 
 설치 후:
@@ -172,6 +174,7 @@ $ claude
 - **라벨·제목 접두어**: `ai-task.yml` 상단과 커맨드 파일의 `gh issue create` 라인에서 팀 컨벤션에 맞게 수정 (상위 추적 이슈는 `[Feature]`, 작업 이슈는 `[Task]` 접두어)
 - **sub-issue 연결**: `/spec`이 이슈를 2개 이상으로 분해하면 상위 이슈를 만들고 REST API로 sub-issue 연결. sub-issues를 지원하지 않는 환경(구버전 GHES)에서는 자동으로 건너뛰며, 이슈 본문의 의존성 필드가 같은 정보를 텍스트로 유지
 - **이슈 크기 기준**: `spec.md`의 "파일 5개, 300라인 diff" 기준을 팀에 맞게 조정
+- **커스터마이징과 업데이트 공존**: 파일을 수정해도 `install.sh` 재실행 시 덮어쓰이지 않음 — 최신본이 `<파일>.new`로 저장되므로 diff 후 수동 병합
 - **조직 전체 적용**: 조직의 `.github` 저장소에 `ISSUE_TEMPLATE/`을 넣으면 모든 repo에 이슈 폼이 상속됨 (슬래시 커맨드는 repo별 `.claude/commands/` 또는 개인 `~/.claude/commands/`에 설치)
 - **Claude Code 외 도구**: 커맨드 파일은 평문 마크다운 지시문이므로 Cursor rules, Copilot instructions 등에도 내용을 이식 가능
 
