@@ -93,7 +93,7 @@ if [ "${ISSUE_TEMPLATE_NO_WORKFLOW:-0}" != "1" ] && [ ! -f "$WF_DEST" ]; then
 fi
 
 # gh CLI가 있으면 라벨 세트 생성 (gh issue create --label 이 라벨 미존재 시 실패)
-# ai-task 외 라벨은 인사이트용: 유형·크기 분포, 리뷰 반려율을 라벨 필터로 집계
+# ai-task 외 라벨은 자동화·인사이트용: 유형·크기 분포, 리뷰 반려율, 무인 실행 필터를 라벨로 집계
 if command -v gh >/dev/null 2>&1; then
   while IFS='|' read -r name color desc; do
     [ -z "$name" ] && continue
@@ -108,6 +108,10 @@ size:M|FBCA04|예상 diff ~300라인
 size:L|E99695|예상 diff 300라인 초과 — 분해 재고 신호
 review:approved|0E8A16|/review-pr 승인
 review:rejected|B60205|/review-pr 반려
+agent:auto|0052CC|사람 개입 없이 완료 가능 — 무인·병렬 실행 대상
+agent:assist|5319E7|구현 중 사람 판단 필요
+risk:high|B60205|되돌리기 비싼 변경 — 리뷰 강화 + 사람 리뷰 필수
+needs-respec|D93F0B|구현 중 설계 전제 깨짐 — 재설계 필요
 LABELS
 fi
 
