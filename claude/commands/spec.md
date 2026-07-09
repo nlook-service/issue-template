@@ -34,7 +34,20 @@ disable-model-invocation: true
 설계문서 요약과 이슈 분해 목록(제목·의존·검증 명령어)을 보여주고 **사용자 승인을 받는다.**
 승인 전에는 이슈를 등록하지 않는다.
 
+**마일스톤 확인**: 승인을 요청하기 전에 유효한(마감일이 지나지 않은) 마일스톤을 마감 임박 순으로 조회한다:
+
+```bash
+gh api "repos/{owner}/{repo}/milestones?state=open&sort=due_on&direction=asc" \
+  --jq '[.[] | select(.due_on == null or .due_on >= (now | todate))] | .[] | "\(.title)\t마감: \(.due_on // "없음")"'
+```
+
+- 마감일이 지난 마일스톤은 제외한다 (state가 open이어도 방치된 과거 마일스톤이 섞여 나오는 것 방지). 마감일이 없는 마일스톤은 만료 판단이 불가능하므로 목록에 포함한다.
+- 결과가 1개 이상이면 분해 목록과 함께 확인받는다 — **마감이 가장 가까운 마일스톤을 기본 제안**하되, 다른 마일스톤 선택지와 "마일스톤 없이 등록" 선택지를 함께 제시한다.
+- 결과가 없으면 묻지 않고 마일스톤 없이 진행한다.
+
 ## 4단계 — 이슈 등록
+
+> 프로젝트(Projects) 연동은 이슈마다 하지 않는다 — 프로젝트의 **Auto-add 워크플로우**(`label:ai-task` 필터)가 등록 즉시 자동으로 추가한다. 미설정 환경이면 README의 "프로젝트·마일스톤 연동" 안내를 따른다.
 
 ### 4-1. 상위 추적 이슈 (이슈가 2개 이상으로 분해된 경우)
 
@@ -42,7 +55,8 @@ disable-model-invocation: true
 
 ```bash
 gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
-gh issue create --label ai-task --title "[Feature] <기능명>" --body-file <본문파일>
+gh issue create --label ai-task --title "[Feature] <기능명>" --body-file <본문파일> \
+  --milestone "<3단계에서 확인받은 마일스톤>"   # 마일스톤 없이 등록이면 이 줄 생략
 ```
 
 상위 이슈 본문 구조:
@@ -98,7 +112,8 @@ docs/design/<슬러그>.md
 
 ```bash
 gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
-gh issue create --label ai-task --title "[Task] <제목>" --body-file <본문파일>
+gh issue create --label ai-task --title "[Task] <제목>" --body-file <본문파일> \
+  --milestone "<3단계에서 확인받은 마일스톤>"   # 마일스톤 없이 등록이면 이 줄 생략
 ```
 
 ### 4-3. sub-issue 연결 (상위 이슈가 있는 경우)
