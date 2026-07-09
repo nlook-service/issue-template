@@ -2,6 +2,9 @@ name: "AI 구현 작업 (AI Implementation Task)"
 description: "AI 에이전트에게 위임할 구현 단위 작업. 세션 1개에서 끝나는 크기로 쪼갤 것."
 title: "[Task] "
 labels: ["ai-task"]
+# 이슈 타입은 organization 리포 전용 — 개인 리포에서는 무시됨.
+# 담당자는 폼에서 동적 지정이 불가하므로(고정 로그인만 가능) 등록 후 직접 할당하거나 /spec 경로를 사용.
+type: "Task"
 body:
   - type: textarea
     id: goal

@@ -49,6 +49,12 @@ gh api "repos/{owner}/{repo}/milestones?state=open&sort=due_on&direction=asc" \
 
 > 프로젝트(Projects) 연동은 이슈마다 하지 않는다 — 프로젝트의 **Auto-add 워크플로우**(`label:ai-task` 필터)가 등록 즉시 자동으로 추가한다. 미설정 환경이면 README의 "프로젝트·마일스톤 연동" 안내를 따른다.
 
+**담당자·이슈 타입** — 모든 `gh issue create`에 다음을 붙인다:
+
+- `--assignee "@me"` — 등록자 본인에게 할당 (사용자가 다른 담당자를 지정했으면 그 로그인 사용)
+- `--type` — 상위 이슈는 `Feature`, 하위 이슈는 유형이 `bug`면 `Bug`, 그 외 `Task`
+- 이슈 타입은 **organization 리포 전용**이다 — `--type`에서 에러가 나면 그 옵션만 빼고 재시도한다 (중단 금지)
+
 ### 4-1. 상위 추적 이슈 (이슈가 2개 이상으로 분해된 경우)
 
 기능 전체를 대표하는 상위 이슈를 **먼저** 등록한다. 하위 이슈들은 4-3에서 GitHub sub-issue로 연결되어 UI에 트리 + 진행률로 표시된다.
@@ -56,6 +62,7 @@ gh api "repos/{owner}/{repo}/milestones?state=open&sort=due_on&direction=asc" \
 ```bash
 gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
 gh issue create --label ai-task --title "[Feature] <기능명>" --body-file <본문파일> \
+  --assignee "@me" --type "Feature" \
   --milestone "<3단계에서 확인받은 마일스톤>"   # 마일스톤 없이 등록이면 이 줄 생략
 ```
 
@@ -113,6 +120,7 @@ docs/design/<슬러그>.md
 ```bash
 gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
 gh issue create --label "ai-task,<유형>,<크기>" --title "[Task] <제목>" --body-file <본문파일> \
+  --assignee "@me" --type "<Task 또는 Bug>" \
   --milestone "<3단계에서 확인받은 마일스톤>"   # 마일스톤 없이 등록이면 이 줄 생략
 ```
 

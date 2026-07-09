@@ -51,7 +51,7 @@ git add .github docs .claude && git commit -m "chore: issue-template 설치"
 | 프로젝트 상태 자동 이동 | 같은 Workflows 화면에서 **Item closed → Done**, **Pull request merged → Done** 켜기 | 보드 상태를 손으로 안 옮겨도 됨 |
 | 마일스톤 생성 | 리포 → Issues → Milestones (마감일 꼭 입력) | `/spec`이 이슈 등록 때 어느 마일스톤에 넣을지 물어보고 자동 연결 |
 
-> **인사이트는 공짜로 나옵니다.** 커맨드가 이슈·PR에 메타데이터를 자동으로 심기 때문에 — 유형(`feat`/`bug`/`refactor`)·크기(`size:S/M`) 라벨은 `/spec`이, 라벨·마일스톤의 PR 승계는 `/implement-issue`가, 리뷰 판정(`review:approved/rejected`) 라벨은 `/review-pr`이 — 마일스톤 페이지에서 **진행률**, Projects → Insights에서 **처리량 차트**, `label:review:rejected` 필터로 **반려율**을 별도 도구 없이 볼 수 있습니다.
+> **인사이트는 공짜로 나옵니다.** 커맨드가 이슈·PR에 메타데이터를 자동으로 심기 때문에 — 유형(`feat`/`bug`/`refactor`)·크기(`size:S/M`) 라벨과 담당자·이슈 타입(Feature/Task/Bug)은 `/spec`이, 라벨·마일스톤의 PR 승계는 `/implement-issue`가, 리뷰 판정(`review:approved/rejected`) 라벨은 `/review-pr`이 — 마일스톤 페이지에서 **진행률**, Projects → Insights에서 **처리량 차트**, `label:review:rejected` 필터로 **반려율**을 별도 도구 없이 볼 수 있습니다.
 
 ### 3단계. 사용 — 커맨드 3개
 
@@ -144,6 +144,8 @@ $ claude
 
 - **프로젝트**: Auto-add 워크플로우(`label:ai-task`)가 등록 즉시 자동 추가 — 커맨드 쪽 설정 불필요
 - **마일스톤**: `/spec`이 마감일 안 지난 마일스톤을 마감 임박 순으로 조회해 승인 단계에서 함께 확인 후 `--milestone`으로 등록. 마일스톤이 없으면 묻지 않음
+- **담당자**: `/spec`이 등록 시 `--assignee "@me"`로 등록자 본인에게 자동 할당 (다른 담당자를 지정하면 그 사람으로)
+- **이슈 타입**: 상위 이슈는 `Feature`, 작업 이슈는 `Task`(버그 수정이면 `Bug`)로 자동 지정. 웹 폼으로 등록해도 `Task` 타입이 붙음. 이슈 타입은 organization 리포 전용이라 개인 리포에서는 자동 생략
 
 ## 라벨 체계
 
@@ -162,7 +164,7 @@ $ claude
 | 일 | 자동? | 담당 |
 |---|---|---|
 | 설계문서 작성·이슈 분해·등록 | 🤖 자동 | `/spec` (분해안 **승인만 사람**) |
-| 라벨·마일스톤 부착 | 🤖 자동 | `/spec` |
+| 라벨·마일스톤·담당자·이슈 타입 부착 | 🤖 자동 | `/spec` (웹 폼 등록도 타입 `Task` 자동) |
 | sub-issue 트리 연결·진행률 | 🤖 자동 | `/spec` → GitHub UI |
 | 프로젝트 보드에 이슈 추가 | 🤖 자동 | Projects **Auto-add** 워크플로우 (`label:ai-task`) |
 | 보드 상태 이동 (Done 등) | 🤖 자동 | Projects **Item closed → Done**, **PR merged → Done** 워크플로우 |
