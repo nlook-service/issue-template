@@ -112,9 +112,14 @@ docs/design/<슬러그>.md
 
 ```bash
 gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
-gh issue create --label ai-task --title "[Task] <제목>" --body-file <본문파일> \
+gh issue create --label "ai-task,<유형>,<크기>" --title "[Task] <제목>" --body-file <본문파일> \
   --milestone "<3단계에서 확인받은 마일스톤>"   # 마일스톤 없이 등록이면 이 줄 생략
 ```
+
+**인사이트 라벨** (라벨이 리포에 없으면 해당 라벨은 생략):
+
+- 유형: `feat` / `bug` / `refactor` 중 하나
+- 크기: 예상 diff 기준 `size:S`(~100라인) / `size:M`(~300라인) — `size:L`이 나오면 라벨을 붙이지 말고 이슈를 더 분해한다
 
 ### 4-3. sub-issue 연결 (상위 이슈가 있는 경우)
 

@@ -43,4 +43,13 @@ disable-model-invocation: true
 (승인이면 머지 가능 / 반려면 무엇을 고쳐야 다시 리뷰 가능한지)
 ```
 
-5. **승인일 때만** 사용자에게 머지 여부를 묻는다. 반려면 머지하지 말고 위 판정만 보고한다. 이슈를 닫거나 PR을 머지하는 행동은 사용자 확인 없이 하지 않는다.
+5. **판정 기록** (인사이트용 — 라벨이 리포에 없으면 건너뛴다): 판정을 PR 라벨로 남긴다. 반려율·재작업 추이를 라벨 필터로 집계할 수 있다.
+
+   ```bash
+   # 승인:
+   gh pr edit <PR번호> --add-label review:approved --remove-label review:rejected
+   # 반려:
+   gh pr edit <PR번호> --add-label review:rejected --remove-label review:approved
+   ```
+
+6. **승인일 때만** 사용자에게 머지 여부를 묻는다. 반려면 머지하지 말고 위 판정만 보고한다. 이슈를 닫거나 PR을 머지하는 행동은 사용자 확인 없이 하지 않는다.

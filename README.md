@@ -48,7 +48,10 @@ git add .github docs .claude && git commit -m "chore: issue-template 설치"
 |---|---|---|
 | Actions의 PR 생성 허용 | 리포/조직 Settings → Actions → General → **"Allow GitHub Actions to create and approve pull requests"** 체크 | 템플릿 업데이트가 매주 자동 PR로 도착 |
 | 프로젝트 자동 연동 | 팀 프로젝트(Projects) → ⚙️ Settings → Workflows → **Auto-add to project** 켜고 필터 `label:ai-task` | 등록되는 모든 이슈가 자동으로 프로젝트에 추가 |
+| 프로젝트 상태 자동 이동 | 같은 Workflows 화면에서 **Item closed → Done**, **Pull request merged → Done** 켜기 | 보드 상태를 손으로 안 옮겨도 됨 |
 | 마일스톤 생성 | 리포 → Issues → Milestones (마감일 꼭 입력) | `/spec`이 이슈 등록 때 어느 마일스톤에 넣을지 물어보고 자동 연결 |
+
+> **인사이트는 공짜로 나옵니다.** 커맨드가 이슈·PR에 메타데이터를 자동으로 심기 때문에 — 유형(`feat`/`bug`/`refactor`)·크기(`size:S/M`) 라벨은 `/spec`이, 라벨·마일스톤의 PR 승계는 `/implement-issue`가, 리뷰 판정(`review:approved/rejected`) 라벨은 `/review-pr`이 — 마일스톤 페이지에서 **진행률**, Projects → Insights에서 **처리량 차트**, `label:review:rejected` 필터로 **반려율**을 별도 도구 없이 볼 수 있습니다.
 
 ### 3단계. 사용 — 커맨드 3개
 

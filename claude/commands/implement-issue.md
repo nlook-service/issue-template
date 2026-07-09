@@ -29,7 +29,15 @@ disable-model-invocation: true
 
 5. **검증**: 완료 기준의 검증 명령어를 **직접 실행**해 전부 통과시킨다. 실패하면 고치고 다시 실행. 통과 출력 결과를 보고에 포함한다.
 
-6. **PR 생성**: 커밋 후 `gh pr create` 로 PR을 만든다. PR 본문에 다음을 포함한다:
+6. **PR 생성**: 커밋 후 `gh pr create` 로 PR을 만든다. 이슈의 라벨·마일스톤을 PR에 승계한다 (프로젝트/마일스톤 화면에서 PR도 함께 집계되도록):
+
+   ```bash
+   gh issue view $ARGUMENTS --json labels,milestone \
+     -q '{labels: [.labels[].name] | join(","), milestone: .milestone.title}'
+   gh pr create --label "<위 라벨들>" --milestone "<위 마일스톤>" ...   # 마일스톤 없으면 생략
+   ```
+
+   PR 본문에 다음을 포함한다:
    - `Closes #$ARGUMENTS`
    - 완료 기준 체크리스트 (실행 결과 포함)
    - Non-goals 준수 확인 — 건드리지 않은 것 명시

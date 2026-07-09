@@ -91,9 +91,23 @@ if [ "${ISSUE_TEMPLATE_NO_WORKFLOW:-0}" != "1" ] && [ ! -f "$WF_DEST" ]; then
   echo "  ⚠ 리포/조직 Settings → Actions → 'Allow GitHub Actions to create and approve pull requests' 필요"
 fi
 
-# gh CLI가 있으면 필수 라벨 생성 (gh issue create --label 이 라벨 미존재 시 실패)
+# gh CLI가 있으면 라벨 세트 생성 (gh issue create --label 이 라벨 미존재 시 실패)
+# ai-task 외 라벨은 인사이트용: 유형·크기 분포, 리뷰 반려율을 라벨 필터로 집계
 if command -v gh >/dev/null 2>&1; then
-  gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
+  while IFS='|' read -r name color desc; do
+    [ -z "$name" ] && continue
+    gh label create "$name" --color "$color" --description "$desc" 2>/dev/null || true
+  done <<'LABELS'
+ai-task|1D76DB|AI 위임 구현 작업
+feat|0E8A16|기능 추가
+bug|D73A4A|버그 수정
+refactor|6F42C1|리팩토링
+size:S|C2E0C6|예상 diff ~100라인
+size:M|FBCA04|예상 diff ~300라인
+size:L|E99695|예상 diff 300라인 초과 — 분해 재고 신호
+review:approved|0E8A16|/review-pr 승인
+review:rejected|B60205|/review-pr 반려
+LABELS
 fi
 
 echo
