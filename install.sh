@@ -16,6 +16,7 @@ design-doc-template.md=docs/design/TEMPLATE.md
 claude/commands/spec.md=.claude/commands/spec.md
 claude/commands/implement-issue.md=.claude/commands/implement-issue.md
 claude/commands/review-pr.md=.claude/commands/review-pr.md
+claude/commands/next.md=.claude/commands/next.md
 "
 
 if [ ! -d .git ]; then
