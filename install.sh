@@ -19,7 +19,8 @@ claude/commands/review-pr.md=.claude/commands/review-pr.md
 claude/commands/next.md=.claude/commands/next.md
 "
 
-if [ ! -d .git ]; then
+# worktree에서는 .git이 파일이므로 -d 대신 git 자체에 루트 여부를 묻는다
+if [ "$(git rev-parse --show-toplevel 2>/dev/null || true)" != "$(pwd -P)" ]; then
   echo "✗ git 저장소 루트가 아닙니다. 설치할 저장소의 루트에서 실행하세요." >&2
   exit 1
 fi
