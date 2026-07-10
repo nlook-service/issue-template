@@ -17,6 +17,7 @@ claude/commands/spec.md=.claude/commands/spec.md
 claude/commands/implement-issue.md=.claude/commands/implement-issue.md
 claude/commands/review-pr.md=.claude/commands/review-pr.md
 claude/commands/next.md=.claude/commands/next.md
+claude/skills/issue-loop/SKILL.md=.claude/skills/issue-loop/SKILL.md
 "
 
 # worktree에서는 .git이 파일이므로 -d 대신 git 자체에 루트 여부를 묻는다
