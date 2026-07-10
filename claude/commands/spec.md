@@ -88,7 +88,20 @@ docs/design/<슬러그>.md
 
 ### 4-2. 하위 이슈 등록
 
-승인받은 각 이슈를 **의존 순서대로** `gh issue create`로 등록한다 — 선행 이슈를 먼저 등록해 번호를 받은 뒤 후행 이슈 본문의 `선행: #번호`를 채운다. 본문은 다음 구조를 그대로 따른다 (이 구조는 `.github/ISSUE_TEMPLATE/ai-task.yml`의 필드와 짝이다 — 한쪽을 바꾸면 반드시 다른 쪽도 함께 수정):
+승인받은 각 이슈를 **의존 순서대로** `gh issue create`로 등록한다 — 선행 이슈를 먼저 등록해 번호를 받은 뒤 후행 이슈 본문의 `선행: #번호`를 채운다.
+
+**제목 규칙 — 기능 안에서의 순번을 제목에 박는다.** GitHub 이슈 번호(`#N`)는 리포 전역이라 여러 기능의 이슈가 섞이면 "어느 기능의 몇 번째 작업"인지 목록에서 안 보인다. 그래서 제목을 다음 형식으로 짓는다:
+
+```
+[Task][<슬러그> <순번>/<전체>] <제목>
+```
+
+- `<슬러그>` — 설계문서 파일명과 같은 기능 슬러그(`docs/design/<슬러그>.md`). 짧게(예: `auth`, `pay`). 기능이 달라도 태그로 구분된다.
+- `<순번>` — 이 기능 안에서의 의존 순서(= 등록 순서). 1부터.
+- `<전체>` — 이 기능으로 분해된 하위 이슈 총 개수(3단계에서 승인받은 개수).
+- 예: `[Task][auth 1/3] refresh 토큰 갱신`, `[Task][auth 2/3] 세션 재사용 감지`
+
+본문은 다음 구조를 그대로 따른다 (이 구조는 `.github/ISSUE_TEMPLATE/ai-task.yml`의 필드와 짝이다 — 한쪽을 바꾸면 반드시 다른 쪽도 함께 수정):
 
 ```markdown
 ## 목표
@@ -121,7 +134,7 @@ docs/design/<슬러그>.md
 
 ```bash
 gh label create ai-task --color "1D76DB" --description "AI 위임 구현 작업" 2>/dev/null || true
-gh issue create --label "ai-task,<유형>,<크기>" --title "[Task] <제목>" --body-file <본문파일> \
+gh issue create --label "ai-task,<유형>,<크기>" --title "[Task][<슬러그> <순번>/<전체>] <제목>" --body-file <본문파일> \
   --assignee "@me" --type "<Task 또는 Bug>" \
   --milestone "<3단계에서 확인받은 마일스톤>"   # 마일스톤 없이 등록이면 이 줄 생략
 ```
