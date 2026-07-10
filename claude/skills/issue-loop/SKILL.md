@@ -28,8 +28,10 @@ description: ai-task 이슈를 우선순위대로 구현→리뷰→머지까지
 2. `gh auth status` 통과 여부
 3. `.claude/commands/implement-issue.md`·`.claude/commands/review-pr.md` 존재 여부 — 없으면 issue-template `install.sh` 실행을 안내하고 중단 (서브에이전트가 이 파일들을 계약서로 읽는다)
 4. `--label <태그>`가 주어졌으면: `gh label list`에 그 태그가 존재하는지, 그 태그가 붙은 열린 ai-task 이슈가 1개 이상인지 확인 — 없으면 오타 가능성을 알리고 중단 (조용히 빈 루프를 돌지 않는다)
-5. 저널 디렉토리 준비: `mkdir -p .claude/issue-loop` 하고, `.gitignore`에 `.claude/issue-loop/`가 없으면 추가 (저널은 로컬 상태 — 커밋 금지)
-6. 저널 마지막에 `⏸ INTERRUPTED` 블록이 있으면 그 내용을 사용자에게 요약해 보여주고 이어서 진행 (상태 원본은 GitHub이므로 저널은 참고 컨텍스트일 뿐 — 재개는 항상 GitHub 상태 재수집으로 시작한다)
+5. **판정 라벨 존재 보장**: `review:approved`·`review:rejected`·`needs-respec`는 루프의 **상태 원본**이다 — `gh label list`에 없으면 즉시 생성한다 (`gh label create <이름> --color <색> 2>/dev/null || true`). 없는 채로 돌면 판정 라벨이 안 붙어 같은 PR을 무한 재리뷰한다
+6. **브랜치 보호 확인 (1인 개발 감지)**: `gh api "repos/{owner}/{repo}/branches/<기본브랜치>/protection/required_pull_request_reviews" --jq .required_approving_review_count 2>/dev/null` — 값이 1 이상이면, 자기 PR을 자기가 승인할 수 없으므로 1인 리포에선 라벨 승인만으로 `gh pr merge`가 거부된다고 **루프 시작 전에 경고**한다 (보호 규칙 완화 / 머지는 사람이 GitHub에서 직접 — 중 택일 안내). 조회 실패(보호 없음 404·권한 부족)는 조용히 건너뛴다
+7. 저널 디렉토리 준비: `mkdir -p .claude/issue-loop` 하고, `.gitignore`에 `.claude/issue-loop/`가 없으면 추가 (저널은 로컬 상태 — 커밋 금지)
+8. 저널 마지막에 `⏸ INTERRUPTED` 블록이 있으면 그 내용을 사용자에게 요약해 보여주고 이어서 진행 (상태 원본은 GitHub이므로 저널은 참고 컨텍스트일 뿐 — 재개는 항상 GitHub 상태 재수집으로 시작한다)
 
 ## 드라이버 원칙
 
@@ -76,7 +78,9 @@ gh pr list --state merged --limit 10 --json number,title,body
 
 먼저 **제외 목록**을 만든다 — 아래에 해당하는 이슈와 그 PR은 **순위 1~4 어디에도 걸리지 않는다** (종료 보고의 에스컬레이션으로만 감):
 
-- 반려 2회 누적 이슈 — 횟수는 저널이 아니라 **GitHub 원본**으로 센다: `gh pr view <N> --json reviews`에서 `CHANGES_REQUESTED` 리뷰 수 (+ 리뷰 폴백 코멘트의 "반려" 판정 수). 저널은 머신을 옮기면 사라지므로 카운트 근거로 쓰지 않는다
+- 반려 2회 누적 이슈 — 횟수는 저널이 아니라 **GitHub 원본**으로 센다. 근거는 **라벨 부착 이력**이다 (1인 개발에선 자기 PR에 `--request-changes`가 항상 거부되어 `CHANGES_REQUESTED` 리뷰가 0으로 남으므로, 리뷰 상태는 세지 않는다):
+  `gh api repos/{owner}/{repo}/issues/<PR번호>/timeline --paginate --jq '[.[] | select(.event=="labeled" and .label.name=="review:rejected")] | length'`
+  — 재작업 때 라벨을 떼어도 timeline 이벤트는 남으므로 반려 1회 = 이벤트 1개. 조회가 실패하면 폴백으로 PR 코멘트·리뷰 본문의 `<!-- review-verdict: rejected -->` 마커 수를 센다. 저널은 머신을 옮기면 사라지므로 카운트 근거로 쓰지 않는다
 - `needs-respec` 라벨 이슈
 - `FAILED`/`BLOCKED` 2회 이슈, `NEEDS_HUMAN`으로 건너뛴 이슈 (무인 모드)
 
@@ -104,7 +108,7 @@ gh pr list --state merged --limit 10 --json number,title,body
 > PR #14 (issue #11) 승인됨 — #12·#13이 블락 대기 중. 지금 머지하고 계속할까요?
 > — 머지하고 계속 / 판정 요약 먼저 보기 / 이 PR은 보류 (내가 직접 처리)
 
-- **머지 승낙 시**: `gh pr merge <N> --squash --delete-branch` (머지 방식은 첫 질문 때 merge/squash/rebase 중 확인하고 저널에 기록해 반복 질문 방지 — squash 권장: 문제 발견 시 PR 단위 revert 한 번으로 되돌림) → `Closes #N`으로 이슈 자동 닫힘 → 블락 해제 → 루프 계속
+- **머지 승낙 시**: `gh pr merge <N> --squash --delete-branch` (머지 방식은 첫 질문 때 merge/squash/rebase 중 확인하고 저널에 기록해 반복 질문 방지 — squash 권장: 문제 발견 시 PR 단위 revert 한 번으로 되돌림) → `Closes #N`으로 이슈 자동 닫힘 → 블락 해제 → 루프 계속. 브랜치 보호(승인 리뷰 필수)로 머지가 거부되면 재시도하지 않는다 — 1인 리포에선 라벨 승인이 GitHub 필수 리뷰를 채우지 못하므로, 머지 대기열에 **"보호 규칙으로 자동 머지 불가 — 사람 처리 필요"**로 보고하고 다음 순위로 넘어간다
 - **보류 선택 시**: 그 PR에 보류 표시를 저널에 남기고 (같은 PR로 다시 묻지 않음) 다음 순위로 — 단, 그 PR의 변경 파일과 앵커가 겹치는 이슈·후속 이슈는 계속 ⛔로 남는다는 걸 함께 알린다
 - **`--unattended`(무인 모드): 묻지 않고 자동 머지한다.** 단 아래 전부 충족할 때만:
   - 리뷰가 **강화 리뷰**(아래 리뷰 템플릿의 무인 모드 추가 항목)로 수행되어 `APPROVED`

@@ -114,6 +114,9 @@ agent:assist|5319E7|구현 중 사람 판단 필요
 risk:high|B60205|되돌리기 비싼 변경 — 리뷰 강화 + 사람 리뷰 필수
 needs-respec|D93F0B|구현 중 설계 전제 깨짐 — 재설계 필요
 LABELS
+else
+  echo "⚠ gh CLI가 없어 라벨 세트를 만들지 못했습니다."
+  echo "  /issue-loop·/review-pr은 review:* 라벨을 승인/반려의 상태 원본으로 씁니다 — gh 설치 후 install.sh를 재실행하세요."
 fi
 
 echo

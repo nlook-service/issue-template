@@ -46,21 +46,33 @@ disable-model-invocation: true
 
 5. **판정 기록**: 판정은 채팅에만 남기면 세션과 함께 사라진다 — **판정 전문(4의 형식)을 반드시 PR에 남긴다.** 반려 사유는 재작업 세션(`/implement-issue`)이 이 기록을 읽고 고친다.
 
+   판정 파일 **첫 줄에 머신 판독용 마커**를 넣는다 (렌더링에는 안 보이고, 자동화가 판정 횟수를 세는 근거다):
+
+   ```
+   <!-- review-verdict: approved -->   또는   <!-- review-verdict: rejected -->
+   ```
+
    ```bash
    # 판정 전문을 파일로 저장한 뒤 —
-   # 승인 (자기 PR이라 리뷰가 거부되면 코멘트로 폴백):
+   # 승인 — 자기 PR(1인 개발)은 GitHub이 리뷰 승인을 거부하므로 코멘트 기록이 기본 경로다:
    gh pr review <PR번호> --approve --body-file <판정파일> || gh pr comment <PR번호> --body-file <판정파일>
-   # 반려:
+   # 반려 — 자기 PR은 --request-changes도 거부되므로 마찬가지로 코멘트로 남는다:
    gh pr review <PR번호> --request-changes --body-file <판정파일> || gh pr comment <PR번호> --body-file <판정파일>
    ```
 
-   라벨도 함께 남긴다 (인사이트 집계용 — 라벨이 리포에 없으면 건너뛴다). `label:review:rejected` 필터가 곧 반려율 지표다:
+   라벨도 함께 남긴다. **`/issue-loop`에서는 이 라벨이 승인/반려의 상태 원본**이다 — 라벨이 안 붙으면 루프가 같은 PR을 계속 재리뷰하므로, 라벨이 리포에 없으면 만들어서라도 붙인다. add와 remove는 **분리 실행**한다 (한 커맨드에 묶으면 한쪽 라벨이 리포에 없을 때 전체가 실패해 판정 라벨까지 안 붙는다):
 
    ```bash
    # 승인:
-   gh pr edit <PR번호> --add-label review:approved --remove-label review:rejected
+   gh label create review:approved --color 0E8A16 --description "/review-pr 승인" 2>/dev/null || true
+   gh pr edit <PR번호> --add-label review:approved
+   gh pr edit <PR번호> --remove-label review:rejected 2>/dev/null || true
    # 반려:
-   gh pr edit <PR번호> --add-label review:rejected --remove-label review:approved
+   gh label create review:rejected --color B60205 --description "/review-pr 반려" 2>/dev/null || true
+   gh pr edit <PR번호> --add-label review:rejected
+   gh pr edit <PR번호> --remove-label review:approved 2>/dev/null || true
    ```
+
+   `label:review:rejected` 필터가 곧 반려율 지표다.
 
 6. **승인일 때만** 사용자에게 머지 여부를 묻는다. 반려면 머지하지 말고 위 판정만 보고한다. 이슈를 닫거나 PR을 머지하는 행동은 사용자 확인 없이 하지 않는다.

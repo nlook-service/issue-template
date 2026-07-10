@@ -1,0 +1,5 @@
+# 도구 캐시
+.ruff_cache/
+
+# install.sh가 로컬 수정 감지 시 남기는 보류 파일
+*.new

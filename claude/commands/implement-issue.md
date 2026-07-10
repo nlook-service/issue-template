@@ -29,6 +29,30 @@ disable-model-invocation: true
 
 3. **브랜치 생성**: `git checkout -b task/$ARGUMENTS-<슬러그>` — 재작업이면 새 브랜치를 만들지 말고 기존 PR의 브랜치(`headRefName`)를 checkout 해서 이어서 작업한다.
 
+   그리고 **프로젝트 보드 상태를 "In Progress"로 옮긴다** — GitHub 내장 워크플로우는 "작업 시작"을 감지할 신호가 없어 이 칸은 커맨드가 채워야 한다. `project` 스코프가 없거나(`gh auth refresh -s project`로 부여) Status 필드/옵션이 없으면 **조용히 건너뛴다** (보드 연동은 보너스이지 의존성이 아니다). 이슈가 이미 추가된 모든 프로젝트에 대해 처리한다:
+
+   ```bash
+   read -r OWNER REPO <<<"$(gh repo view --json owner,name -q '.owner.login+" "+.name')"
+   gh api graphql -f query='
+     query($o:String!,$r:String!,$n:Int!){ repository(owner:$o,name:$r){ issue(number:$n){
+       projectItems(first:20){ nodes{ id project{ id title
+         field(name:"Status"){ ... on ProjectV2SingleSelectField { id options{ id name } } } } } } } } }' \
+     -f o="$OWNER" -f r="$REPO" -F n=$ARGUMENTS 2>/dev/null \
+   | jq -c '.data.repository.issue.projectItems.nodes[]
+       | select(.project.field != null)
+       | {item:.id, proj:.project.id, field:.project.field.id,
+          opt:((.project.field.options[] | select(.name|ascii_downcase|test("progress")) | .id) // null)}
+       | select(.opt != null)' \
+   | while read -r row; do
+       gh api graphql -f query='mutation($p:ID!,$i:ID!,$f:ID!,$o:String!){
+         updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$o}}){ projectV2Item{ id } } }' \
+         -f p="$(jq -r .proj <<<"$row")" -f i="$(jq -r .item <<<"$row")" \
+         -f f="$(jq -r .field <<<"$row")" -f o="$(jq -r .opt <<<"$row")" >/dev/null 2>&1 || true
+     done
+   ```
+
+   Done은 이 커맨드가 만지지 않는다 — 머지 시 `Closes #N`으로 이슈가 닫히고, 프로젝트의 내장 워크플로우(`Item closed → Done`)가 옮긴다 (README 2단계 설정).
+
 4. **구현 규칙**:
    - 코드 앵커에 명시된 파일만 수정한다
    - **Non-goals에 있는 것은 절대 건드리지 않는다** — 개선할 점이 보여도 하지 말고 보고만 한다
