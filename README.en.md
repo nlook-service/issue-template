@@ -43,6 +43,7 @@ The core loop is **3 slash commands**, plus a navigator (`/next`) and an autonom
   - [/next — navigator](#next--navigator)
   - [/issue-loop — autonomous loop](#issue-loop--autonomous-loop)
 - [The 3 rules to remember](#the-3-rules-to-remember)
+- [How this relates to your git workflow](#how-this-relates-to-your-git-workflow)
 - [FAQ](#-faq)
 - [Issue body format](#issue-body-format-auto-generated-by-the-commands)
 - [Projects & milestone integration](#projects--milestone-integration)
@@ -260,6 +261,30 @@ Full rules: [`claude/skills/issue-loop/SKILL.md`](./claude/skills/issue-loop/SKI
 
 ---
 
+## How this relates to your git workflow
+
+What this template actually requires of your branching strategy is minimal:
+
+```
+task/<issue-number>-<slug> ──PR──▶ <default branch> (merged after contract review, Closes #N)
+```
+
+- **One issue = one branch = one PR.** `/implement-issue` creates the branch automatically and comes back as a PR.
+- **The template does not choose your PR base branch.** The commands work against the repo's default branch, so it layers onto whatever strategy your org uses — trunk-based (straight to main), git-flow (develop), or release branches.
+- **Merge method (squash/merge/rebase) follows your org's convention.** Just note that the one-issue-one-PR structure pairs well with squash.
+- **CI complements `/review-pr`.** `/review-pr` asks "was it built to the contract?"; CI asks "is it mechanically sound?" (tests, typecheck, build). They are not substitutes — if you have CI, gate PRs on it as well.
+- **Parallel work**: issues without dependencies have disjoint code anchors (`/spec`'s parallel-safety rule), so worktree-based parallel work is safe under any strategy.
+
+The choices above that layer are team- and environment-dependent — for reference only:
+
+| Situation | Common choice |
+|---|---|
+| Solo/small team, no staging | Trunk-based + tag releases (`git tag vX.Y.Z` → deploy). Without staging, a develop branch tends to become a merge-delay device rather than a testing ground |
+| Staging environment available | Trunk-based + environment promotion — auto-deploy to staging, verify, then promote to production with a tag |
+| Scheduled releases / QA org | git-flow / release branches — set develop as the default branch and the template works unmodified |
+
+---
+
 ## ❓ FAQ
 
 **Q. Isn't the issue template file alone enough?**
@@ -276,6 +301,9 @@ No. Checksums recorded at install time (`.claude/issue-template.lock`) detect lo
 
 **Q. I'm a solo developer — doesn't GitHub refuse approvals on your own PR?**
 It does, which is why the source of truth for approve/reject is the **labels** (`review:approved`/`review:rejected`), not the GitHub review state. When `gh pr review --approve` is refused on your own PR, the full verdict lands as a PR comment, and `/issue-loop`'s merge gate and rejection counter only ever look at the labels (and their addition history). The one exception is a repo with a branch-protection rule requiring 1+ approving reviews — a solo account can never satisfy that by GitHub policy, so the loop detects it before starting, warns you, and hands those merges to a human (relax the rule and auto-merge works too).
+
+**Q. What if I need a grouping bigger than a Feature (an Epic)?**
+Keep the hierarchy as is and add one issue by hand. Create an issue titled `[Epic]`, write "tracking only" in the body, then attach the `[Feature]` issues created by `/spec` as sub-issues — GitHub sub-issues nest, so the Epic ⊃ Feature ⊃ Task tree and progress bars just work. No command changes needed: `/implement-issue` and `/issue-loop` only ever look at Tasks, and the "tracking only" marker keeps the Epic from being picked up for implementation. Create one only when several features form a single initiative; otherwise Features and milestones are enough.
 
 **Q. Why `/review-pr` instead of native AI code review?**
 It's a complement, not a replacement. Native review asks "is this good code?"; `/review-pr` asks "is this **the code we agreed on**?" The issue contract (Non-goals, anchors, acceptance criteria) is grading criteria native tools don't know about — use both.
