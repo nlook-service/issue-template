@@ -11,7 +11,7 @@ A Claude Code workflow that stops the classic failure modes of delegating to AI 
 <p>
   <a href="https://nlook.me"><img alt="Made by nlook" src="https://img.shields.io/badge/made%20by-nlook.me-0a0a0b"></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2563eb"></a>
-  <a href="./VERSION"><img alt="Version" src="https://img.shields.io/badge/version-1.7.1-blue"></a>
+  <a href="./VERSION"><img alt="Version" src="https://img.shields.io/badge/version-1.9.0-blue"></a>
   <a href="https://docs.claude.com/en/docs/claude-code"><img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-workflow-86efac"></a>
 </p>
 
@@ -120,11 +120,11 @@ Approve the breakdown and the issues are registered. Then pick your style:
 
 Pinned to the higher model (opus). What it does:
 
-1. **Verifies real code** — opens the code the requirement touches and collects file:line evidence. **Unverified facts never enter the design** (blocks hallucinated designs).
-2. **Writes the design doc** — `docs/design/<feature-slug>.md`, with at least 2 explicit "things we will NOT do".
+1. **Verifies real code** — opens the code the requirement touches and collects file:line evidence. **Unverified facts never enter the design** (blocks hallucinated designs). It also makes a **UI judgment**: does the change alter the shape of any human-visible surface, or the meaning of a value already displayed? The verdict is recorded with evidence (file:line) — even "no UI" is recorded along with the paths explored, so it's never a gut call.
+2. **Writes the design doc + UI mockup** — `docs/design/<feature-slug>.md`, with at least 2 explicit "things we will NOT do". If the screen changes, it also builds a **self-contained HTML mockup** (`.design/<slug>/vN.html` — AS-IS/TO-BE grounded in the real code, empty state included). Light surfaces like CLI output only need a before/after text block plus an output-verification command (no mockup forced).
 3. **Breaks work into issues** — each issue is sized to **finish in a single AI session** (~5 files, ~300-line diff). **Parallel-safety rule**: issues without dependencies must not share code anchors (files to modify) — that's what makes concurrent git-worktree work merge-conflict-free.
-4. **Human approval** — nothing is registered until you approve the breakdown (and milestone).
-5. **Registers issues** — a parent tracking issue (`[Feature]`) plus child issues (`[Task][<slug> <n>/<total>]`) linked as a sub-issue tree, with labels, assignee, milestone, and issue type attached automatically.
+4. **Human approval** — nothing is registered until you approve the breakdown, milestone, **and the UI mockup**. Mockup feedback iterates as vN+1, capped at 3 rounds — you agree on the picture before any code is written, and the approved mockup becomes the contract for implementation and review.
+5. **Registers issues** — the approved design doc and mockup are committed first (so issue links never break across sessions or machines), then a parent tracking issue (`[Feature]`) plus child issues (`[Task][<slug> <n>/<total>]`) linked as a sub-issue tree, with labels, assignee, milestone, and issue type attached automatically.
 
 The `[auth 2/3]` title tag makes "which feature, which step" visible in the issue list regardless of global issue numbers.
 
@@ -321,6 +321,7 @@ It's a complement, not a replacement. Native review asks "is this good code?"; `
 | Merge conflicts in parallel work | Dependency-free issues have **disjoint code anchors** — worktree-safe |
 | Rejection reasons evaporating with the session | Full verdict **recorded as a PR review** — the rework session reads it |
 | Broken design premises silently buried | Issue comment + **`needs-respec` label** on GitHub — `/next` surfaces it |
+| "Does this need UI?" decided by gut → "that's not what I meant" after implementation | **UI judgment gate + HTML mockup approval** — agree on the picture before code; the approved mockup becomes the contract |
 | Session open/close fatigue | **`/issue-loop`** — auto-repeats with per-step subagents, resumes from GitHub state |
 
 ---
@@ -335,7 +336,7 @@ It's a complement, not a replacement. Native review asks "is this good code?"; `
 | Interface contract | | Signatures/schemas as code |
 | Acceptance criteria + verification commands | ✅ | The AI runs them itself. Anything unmeasurable by command is marked `(manual)` → human-checked at review |
 | Edge cases | | Decisions already made at design time |
-| Dependencies | | Prerequisite issue numbers, design doc link |
+| Dependencies | | Prerequisite issue numbers, design doc & approved mockup links (mockups are reference-only) |
 
 ## Projects & milestone integration
 
@@ -367,6 +368,7 @@ The "issues registered but project/milestone hooked up by hand" problem disappea
 | Task | Auto? | Owner |
 |---|---|---|
 | Design doc, issue breakdown & registration | 🤖 auto | `/spec` (**only the approval** is human) |
+| UI judgment & HTML mockup generation | 🤖 auto | `/spec` (**mockup approval = 👤 human** — agree on the picture before code) |
 | Labels, milestone, assignee, issue type | 🤖 auto | `/spec` |
 | Sub-issue tree & progress | 🤖 auto | `/spec` → GitHub UI |
 | Adding issues to the project board | 🤖 auto | Projects **Auto-add** workflow (`label:ai-task`) |
@@ -378,7 +380,7 @@ The "issues registered but project/milestone hooked up by hand" problem disappea
 | Review verdict + PR record + verdict label | 🤖 auto | `/review-pr` (**only the merge decision** is human) |
 | Implement→review→merge repetition, model routing, resume | 🤖 auto | `/issue-loop` (supervised: human merges; unattended: enhanced review substitutes) |
 | Template updates | 🤖 auto | Weekly sync workflow opens a PR (**only the merge** is human) |
-| Milestone creation, breakdown approval, `risk:high` review & merge | 👤 human | Deliberately retained judgment points |
+| Milestone creation, breakdown & UI-mockup approval, `risk:high` review & merge | 👤 human | Deliberately retained judgment points |
 
 What remains for humans is **judgment** (approve what to build, approve the code, merge); recording, wiring, and aggregation are fully automatic.
 
@@ -408,6 +410,7 @@ The data flow and permissions are intentionally simple:
 
   Only markdown/YAML templates are installed, everything is downloaded to a temp dir first (a failed download touches nothing), and you can pin to an audited commit via `ISSUE_TEMPLATE_RAW` (see Customization).
 - **Auto-update workflow**: actions are **pinned to commit SHAs**, permissions are limited to `contents: write` + `pull-requests: write`, and it **only opens PRs — never auto-merges**. If you don't want to trust upstream, install with `ISSUE_TEMPLATE_NO_WORKFLOW=1`.
+- **Visual render comparison is optional.** `/review-pr`'s approved-mockup verification only runs at the render level when a screen-capture tool is already installed and authenticated locally — **this template installs no tools**. Without one, it degrades to static comparison or a human-check item, and the workflow proceeds unchanged.
 - **Unattended auto-merge guardrails**: `--unattended` auto-merge requires the enhanced review + `agent:auto` + not `risk:high` + CI green, all at once. We recommend also enabling **branch protection (required checks)** — GitHub stays the last line of defense even if the loop misjudges.
 - **Reporting vulnerabilities**: please use GitHub's **Private vulnerability reporting** (Security tab) instead of a public issue.
 
@@ -441,6 +444,7 @@ issue-template/
 ## Optional integrations
 
 - **[Langfuse](./integrations/langfuse/README.md)** — records command executions as traces (opt-in). Enabling it sends command arguments to a third-party SaaS; read the warnings in that README first. (Korean)
+- **[design-from-code](https://github.com/nlook-service/design-from-code)** — a mockup skill `/spec` can delegate UI mockup production to (opt-in). It reads the real component source to reproduce the current screen faithfully before drawing the TO-BE. The output contract (`.design/<slug>/vN.html` + `meta.json`) is identical, so `/spec` delegates when it's installed — and **the workflow is complete without it** using `/spec`'s built-in rules.
 
 ## Requirements
 

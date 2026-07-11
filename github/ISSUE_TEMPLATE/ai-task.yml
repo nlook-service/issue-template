@@ -84,7 +84,8 @@ body:
     id: dependencies
     attributes:
       label: "의존성 (Dependencies)"
-      description: "선행 이슈, 관련 설계문서 링크."
+      description: "선행 이슈, 관련 설계문서 링크. UI 이슈면 승인 시안 링크도 여기에 — 코드 앵커에 넣지 말 것 (시안은 참조 전용, 수정 대상 아님)."
       placeholder: |
         - 선행: #12 (머지 후 시작)
         - 설계문서: docs/design/auth-refresh.md
+        - 승인 시안: .design/auth-refresh/v3.html (참조 전용 — 수정 금지. UI 이슈만)
