@@ -11,7 +11,7 @@ A Claude Code workflow that stops the classic failure modes of delegating to AI 
 <p>
   <a href="https://nlook.me"><img alt="Made by nlook" src="https://img.shields.io/badge/made%20by-nlook.me-0a0a0b"></a>
   <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2563eb"></a>
-  <a href="./VERSION"><img alt="Version" src="https://img.shields.io/badge/version-1.9.0-blue"></a>
+  <a href="./VERSION"><img alt="Version" src="https://img.shields.io/badge/version-1.9.1-blue"></a>
   <a href="https://docs.claude.com/en/docs/claude-code"><img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-workflow-86efac"></a>
 </p>
 
